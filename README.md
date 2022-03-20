@@ -10,4 +10,7 @@ This is meant to be an easy way to spin up docker compose with kamailio and aste
 
 **docker-compose up --force-recreate --build --scale asterisk=3**
 
-You can edit the kamailio.cfg and rerun this as many times as you like.
+**Point your softphone at 127.0.0.1:5060**
+
+
+*You can edit the kamailio.cfg and rerun this as many times as you like.*
