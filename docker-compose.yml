@@ -1,0 +1,15 @@
+services:
+   asterisk:
+     image: andrius/asterisk
+     deploy:
+       mode: replicated
+       replicas: 6
+   kamailio_dispatcher:
+     depends_on:
+       - asterisk
+     build:
+      context: .
+      dockerfile: kamailio.dockerfile
+     ports:
+       - "5060:5060/udp"
+     restart: always
