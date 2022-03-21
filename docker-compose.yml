@@ -1,7 +1,18 @@
 services:
+   kamailio_database:
+     build:
+      context: ./mariadb
+      dockerfile: mariadb.dockerfile
+     expose:
+      - "3306"
+     environment:
+       - MARIADB_ROOT_PASSWORD=notkamailio
+       - MARIADB_DATABASE=kamailio
+       - MARIADB_USER=kamailio
+       - MARIADB_PASSWORD=kamailiorw
    asterisk:
      build:
-      context: .
+      context: ./asterisk
       dockerfile: asterisk.dockerfile
      deploy:
        mode: replicated
@@ -9,9 +20,12 @@ services:
    kamailio_dispatcher:
      depends_on:
        - asterisk
+       - kamailio_database
      build:
-      context: .
+      context: ./kamailio
       dockerfile: kamailio.dockerfile
      ports:
        - "5060:5060/udp"
+     links:
+       - kamailio_database:kamailio_database
      restart: always
