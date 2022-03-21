@@ -1,6 +1,8 @@
 services:
    asterisk:
-     image: andrius/asterisk
+     build:
+      context: .
+      dockerfile: asterisk.dockerfile
      deploy:
        mode: replicated
        replicas: 6
