@@ -17,11 +17,11 @@ This is meant to be an easy way to spin up docker compose with kamailio and aste
 
 ## Managing systems
 
-Kamailio
+### Kamailio
 - docker exec -it kamailio-asterisk-docker-compose_kamailio_dispatcher_1 /bin/bash
-Mysql
+### Mysql
 - docker exec -it kamailio-asterisk-docker-compose_kamailio_database_1 /bin/bash
-Asterisk
+### Asterisk
 - docker exec -it kamailio-asterisk-docker-compose_asterisk_1 /bin/sh
 - docker exec -it kamailio-asterisk-docker-compose_asterisk_2 /bin/sh
 - docker exec -it kamailio-asterisk-docker-compose_asterisk_3 /bin/sh
