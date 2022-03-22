@@ -8,7 +8,7 @@ COPY dispatcher.list /etc/kamailio/
 #Print out the current IP Address info
 RUN ip add
 RUN apt update
-RUN apt install kamailio kamailio-mysql-modules
+RUN apt install kamailio kamailio-mysql-modules -y
 RUN apt install sngrep
 
 #Expose port 5060 (SIP) for TCP and UDP

@@ -7,7 +7,7 @@ services:
       - "3306"
      environment:
        - MARIADB_ROOT_PASSWORD=notkamailio
-       - MARIADB_DATABASE=kamailio
+       #- MARIADB_DATABASE=kamailio
        - MARIADB_USER=kamailio
        - MARIADB_PASSWORD=kamailiorw
    asterisk:
@@ -26,6 +26,4 @@ services:
       dockerfile: kamailio.dockerfile
      ports:
        - "5060:5060/udp"
-     links:
-       - kamailio_database:kamailio_database
      restart: always
