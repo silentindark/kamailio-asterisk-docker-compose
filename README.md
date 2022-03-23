@@ -19,9 +19,17 @@ This is meant to be an easy way to spin up docker compose with kamailio and aste
 
 ### Kamailio
 - docker exec -it kamailio-asterisk-docker-compose_kamailio_dispatcher_1 /bin/bash
-### Mysql
-- docker exec -it kamailio-asterisk-docker-compose_kamailio_database_1 /bin/bash
+
+### pgsql
+- docker exec -it kamailio-asterisk-docker-compose_kamailio_pg_1 /bin/bash
+
 ### Asterisk
 - docker exec -it kamailio-asterisk-docker-compose_asterisk_1 /bin/sh
 - docker exec -it kamailio-asterisk-docker-compose_asterisk_2 /bin/sh
 - docker exec -it kamailio-asterisk-docker-compose_asterisk_3 /bin/sh
+
+### Mysql
+- docker exec -it kamailio-asterisk-docker-compose_kamailio_database_1 /bin/bash
+
+# Mariadb Usage
+I have commented out all mariadb as I prefer using postgres but you can use it by commenting out postgres and uncommenting mariadb stuff

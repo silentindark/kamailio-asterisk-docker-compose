@@ -1,15 +1,13 @@
 services:
-   kamailio_database:
-     build:
-      context: ./mariadb
-      dockerfile: mariadb.dockerfile
-     expose:
-      - "3306"
-     environment:
-       - MARIADB_ROOT_PASSWORD=notkamailio
-       #- MARIADB_DATABASE=kamailio
-       - MARIADB_USER=kamailio
-       - MARIADB_PASSWORD=kamailiorw
+   #kamailio_database:
+     #build:
+      #context: ./mariadb
+      #dockerfile: mariadb.dockerfile
+     #environment:
+      # - MARIADB_ROOT_PASSWORD=notkamailio
+      # - MARIADB_DATABASE=kamailio
+      # - MARIADB_USER=kamailio
+      # - MARIADB_PASSWORD=kamailiorw
    asterisk:
      build:
       context: ./asterisk
@@ -20,10 +18,20 @@ services:
    kamailio_dispatcher:
      depends_on:
        - asterisk
-       - kamailio_database
      build:
       context: ./kamailio
       dockerfile: kamailio.dockerfile
+     volumes:
+      - ./kamailio/etc:/etc/kamailio
      ports:
        - "5060:5060/udp"
      restart: always
+   kamailio_pg:
+     build:
+      context: ./postgresql
+      dockerfile: postgres.dockerfile
+     ports:
+      - "5432:5432/tcp"
+     environment:
+       - POSTGRES_PASSWORD=notkamailio
+       - POSTGRES_DB=kamailio

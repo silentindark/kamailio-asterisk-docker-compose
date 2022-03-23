@@ -1,45 +1,13 @@
-Skip to content
-Product 
-Team
-Enterprise
-Explore 
-Marketplace
-Pricing 
-Search
-Sign in
-Sign up
-caioquirino
-/
-docker-kamailio
-Public
-Code
-Issues
-Pull requests
-Actions
-Projects
-Wiki
-Security
-Insights
-docker-kamailio/conf/mysql_scripts/10-create-tables.sql
-@caioquirino
-caioquirino Initial files
-Latest commit 15a936f on Jan 3, 2016
- History
- 1 contributor
-1934 lines (1682 sloc)  59.3 KB
-  
-USE kamailio;
-
--- MySQL dump 10.13  Distrib 5.5.46, for debian-linux-gnu (x86_64)
+-- MySQL dump 10.16  Distrib 10.1.48-MariaDB, for debian-linux-gnu (x86_64)
 --
--- Host: kamailio_database    Database: kamailio
+-- Host: localhost    Database: kamailio
 -- ------------------------------------------------------
--- Server version	5.7.9
+-- Server version	10.1.48-MariaDB-0ubuntu0.18.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -57,8 +25,8 @@ DROP TABLE IF EXISTS `acc`;
 CREATE TABLE `acc` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `method` varchar(16) NOT NULL DEFAULT '',
-  `from_tag` varchar(64) NOT NULL DEFAULT '',
-  `to_tag` varchar(64) NOT NULL DEFAULT '',
+  `from_tag` varchar(128) NOT NULL DEFAULT '',
+  `to_tag` varchar(128) NOT NULL DEFAULT '',
   `callid` varchar(255) NOT NULL DEFAULT '',
   `sip_code` varchar(3) NOT NULL DEFAULT '',
   `sip_reason` varchar(128) NOT NULL DEFAULT '',
@@ -112,37 +80,39 @@ DROP TABLE IF EXISTS `active_watchers`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `active_watchers` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `presentity_uri` varchar(128) NOT NULL,
+  `presentity_uri` varchar(255) NOT NULL,
   `watcher_username` varchar(64) NOT NULL,
   `watcher_domain` varchar(64) NOT NULL,
   `to_user` varchar(64) NOT NULL,
   `to_domain` varchar(64) NOT NULL,
   `event` varchar(64) NOT NULL DEFAULT 'presence',
   `event_id` varchar(64) DEFAULT NULL,
-  `to_tag` varchar(64) NOT NULL,
-  `from_tag` varchar(64) NOT NULL,
+  `to_tag` varchar(128) NOT NULL,
+  `from_tag` varchar(128) NOT NULL,
   `callid` varchar(255) NOT NULL,
   `local_cseq` int(11) NOT NULL,
   `remote_cseq` int(11) NOT NULL,
-  `contact` varchar(128) NOT NULL,
+  `contact` varchar(255) NOT NULL,
   `record_route` text,
   `expires` int(11) NOT NULL,
   `status` int(11) NOT NULL DEFAULT '2',
-  `reason` varchar(64) NOT NULL,
+  `reason` varchar(64) DEFAULT NULL,
   `version` int(11) NOT NULL DEFAULT '0',
   `socket_info` varchar(64) NOT NULL,
-  `local_contact` varchar(128) NOT NULL,
+  `local_contact` varchar(255) NOT NULL,
   `from_user` varchar(64) NOT NULL,
   `from_domain` varchar(64) NOT NULL,
   `updated` int(11) NOT NULL,
   `updated_winfo` int(11) NOT NULL,
+  `flags` int(11) NOT NULL DEFAULT '0',
+  `user_agent` varchar(255) DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `active_watchers_idx` (`callid`,`to_tag`,`from_tag`),
   KEY `active_watchers_expires` (`expires`),
   KEY `active_watchers_pres` (`presentity_uri`,`event`),
   KEY `updated_idx` (`updated`),
   KEY `updated_winfo_idx` (`updated_winfo`,`presentity_uri`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -169,7 +139,7 @@ CREATE TABLE `address` (
   `port` smallint(5) unsigned NOT NULL DEFAULT '0',
   `tag` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -178,6 +148,7 @@ CREATE TABLE `address` (
 
 LOCK TABLES `address` WRITE;
 /*!40000 ALTER TABLE `address` DISABLE KEYS */;
+INSERT INTO `address` VALUES (1,200,'54.186.161.254',32,5060,'Dontest Asterisk');
 /*!40000 ALTER TABLE `address` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -194,13 +165,13 @@ CREATE TABLE `aliases` (
   `username` varchar(64) NOT NULL DEFAULT '',
   `domain` varchar(64) DEFAULT NULL,
   `contact` varchar(255) NOT NULL DEFAULT '',
-  `received` varchar(128) DEFAULT NULL,
+  `received` varchar(255) DEFAULT NULL,
   `path` varchar(512) DEFAULT NULL,
   `expires` datetime NOT NULL DEFAULT '2030-05-28 21:32:15',
   `q` float(10,2) NOT NULL DEFAULT '1.00',
   `callid` varchar(255) NOT NULL DEFAULT 'Default-Call-ID',
   `cseq` int(11) NOT NULL DEFAULT '1',
-  `last_modified` datetime NOT NULL DEFAULT '1900-01-01 00:00:01',
+  `last_modified` datetime NOT NULL DEFAULT '2000-01-01 00:00:01',
   `flags` int(11) NOT NULL DEFAULT '0',
   `cflags` int(11) NOT NULL DEFAULT '0',
   `user_agent` varchar(255) NOT NULL DEFAULT '',
@@ -263,7 +234,7 @@ CREATE TABLE `carrierfailureroute` (
   `carrier` int(10) unsigned NOT NULL DEFAULT '0',
   `domain` int(10) unsigned NOT NULL DEFAULT '0',
   `scan_prefix` varchar(64) NOT NULL DEFAULT '',
-  `host_name` varchar(128) NOT NULL DEFAULT '',
+  `host_name` varchar(255) NOT NULL DEFAULT '',
   `reply_code` varchar(3) NOT NULL DEFAULT '',
   `flags` int(11) unsigned NOT NULL DEFAULT '0',
   `mask` int(11) unsigned NOT NULL DEFAULT '0',
@@ -298,7 +269,7 @@ CREATE TABLE `carrierroute` (
   `mask` int(11) unsigned NOT NULL DEFAULT '0',
   `prob` float NOT NULL DEFAULT '0',
   `strip` int(11) unsigned NOT NULL DEFAULT '0',
-  `rewrite_host` varchar(128) NOT NULL DEFAULT '',
+  `rewrite_host` varchar(255) NOT NULL DEFAULT '',
   `rewrite_prefix` varchar(64) NOT NULL DEFAULT '',
   `rewrite_suffix` varchar(64) NOT NULL DEFAULT '',
   `description` varchar(255) DEFAULT NULL,
@@ -359,7 +330,7 @@ CREATE TABLE `dbaliases` (
   KEY `alias_user_idx` (`alias_username`),
   KEY `alias_idx` (`alias_username`,`alias_domain`),
   KEY `target_idx` (`username`,`domain`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -368,6 +339,7 @@ CREATE TABLE `dbaliases` (
 
 LOCK TABLES `dbaliases` WRITE;
 /*!40000 ALTER TABLE `dbaliases` DISABLE KEYS */;
+INSERT INTO `dbaliases` VALUES (1,'133','kamailio.twobarrel.com','133','dontest.twobarrels.com');
 /*!40000 ALTER TABLE `dbaliases` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -383,16 +355,16 @@ CREATE TABLE `dialog` (
   `hash_entry` int(10) unsigned NOT NULL,
   `hash_id` int(10) unsigned NOT NULL,
   `callid` varchar(255) NOT NULL,
-  `from_uri` varchar(128) NOT NULL,
-  `from_tag` varchar(64) NOT NULL,
-  `to_uri` varchar(128) NOT NULL,
-  `to_tag` varchar(64) NOT NULL,
+  `from_uri` varchar(255) NOT NULL,
+  `from_tag` varchar(128) NOT NULL,
+  `to_uri` varchar(255) NOT NULL,
+  `to_tag` varchar(128) NOT NULL,
   `caller_cseq` varchar(20) NOT NULL,
   `callee_cseq` varchar(20) NOT NULL,
   `caller_route_set` varchar(512) DEFAULT NULL,
   `callee_route_set` varchar(512) DEFAULT NULL,
-  `caller_contact` varchar(128) NOT NULL,
-  `callee_contact` varchar(128) NOT NULL,
+  `caller_contact` varchar(255) NOT NULL,
+  `callee_contact` varchar(255) NOT NULL,
   `caller_sock` varchar(64) NOT NULL,
   `callee_sock` varchar(64) NOT NULL,
   `state` int(10) unsigned NOT NULL,
@@ -401,7 +373,7 @@ CREATE TABLE `dialog` (
   `sflags` int(10) unsigned NOT NULL DEFAULT '0',
   `iflags` int(10) unsigned NOT NULL DEFAULT '0',
   `toroute_name` varchar(32) DEFAULT NULL,
-  `req_uri` varchar(128) NOT NULL,
+  `req_uri` varchar(255) NOT NULL,
   `xdata` varchar(512) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `hash_idx` (`hash_entry`,`hash_id`)
@@ -459,7 +431,7 @@ CREATE TABLE `dialplan` (
   `match_exp` varchar(64) NOT NULL,
   `match_len` int(11) NOT NULL,
   `subst_exp` varchar(64) NOT NULL,
-  `repl_exp` varchar(64) NOT NULL,
+  `repl_exp` varchar(256) NOT NULL,
   `attrs` varchar(64) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -490,7 +462,7 @@ CREATE TABLE `dispatcher` (
   `attrs` varchar(128) NOT NULL DEFAULT '',
   `description` varchar(64) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -499,6 +471,7 @@ CREATE TABLE `dispatcher` (
 
 LOCK TABLES `dispatcher` WRITE;
 /*!40000 ALTER TABLE `dispatcher` DISABLE KEYS */;
+INSERT INTO `dispatcher` VALUES (1,1,'54.186.161.254:5060',0,0,'','Asterisk Test');
 /*!40000 ALTER TABLE `dispatcher` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -513,10 +486,10 @@ CREATE TABLE `domain` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `domain` varchar(64) NOT NULL,
   `did` varchar(64) DEFAULT NULL,
-  `last_modified` datetime NOT NULL DEFAULT '1900-01-01 00:00:01',
+  `last_modified` datetime NOT NULL DEFAULT '2000-01-01 00:00:01',
   PRIMARY KEY (`id`),
   UNIQUE KEY `domain_idx` (`domain`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -525,6 +498,7 @@ CREATE TABLE `domain` (
 
 LOCK TABLES `domain` WRITE;
 /*!40000 ALTER TABLE `domain` DISABLE KEYS */;
+INSERT INTO `domain` VALUES (1,'kamailio.twobarrel.com','2','1900-01-01 00:00:01');
 /*!40000 ALTER TABLE `domain` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -541,9 +515,9 @@ CREATE TABLE `domain_attrs` (
   `name` varchar(32) NOT NULL,
   `type` int(10) unsigned NOT NULL,
   `value` varchar(255) NOT NULL,
-  `last_modified` datetime NOT NULL DEFAULT '1900-01-01 00:00:01',
+  `last_modified` datetime NOT NULL DEFAULT '2000-01-01 00:00:01',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `domain_attrs_idx` (`did`,`name`,`value`)
+  KEY `domain_attrs_idx` (`did`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -609,6 +583,113 @@ LOCK TABLES `domainpolicy` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `dr_gateways`
+--
+
+DROP TABLE IF EXISTS `dr_gateways`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dr_gateways` (
+  `gwid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `type` int(11) unsigned NOT NULL DEFAULT '0',
+  `address` varchar(128) NOT NULL,
+  `strip` int(11) unsigned NOT NULL DEFAULT '0',
+  `pri_prefix` varchar(64) DEFAULT NULL,
+  `attrs` varchar(255) DEFAULT NULL,
+  `description` varchar(128) NOT NULL DEFAULT '',
+  PRIMARY KEY (`gwid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dr_gateways`
+--
+
+LOCK TABLES `dr_gateways` WRITE;
+/*!40000 ALTER TABLE `dr_gateways` DISABLE KEYS */;
+/*!40000 ALTER TABLE `dr_gateways` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `dr_groups`
+--
+
+DROP TABLE IF EXISTS `dr_groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dr_groups` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL,
+  `domain` varchar(128) NOT NULL DEFAULT '',
+  `groupid` int(11) unsigned NOT NULL DEFAULT '0',
+  `description` varchar(128) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dr_groups`
+--
+
+LOCK TABLES `dr_groups` WRITE;
+/*!40000 ALTER TABLE `dr_groups` DISABLE KEYS */;
+/*!40000 ALTER TABLE `dr_groups` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `dr_gw_lists`
+--
+
+DROP TABLE IF EXISTS `dr_gw_lists`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dr_gw_lists` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `gwlist` varchar(255) NOT NULL,
+  `description` varchar(128) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dr_gw_lists`
+--
+
+LOCK TABLES `dr_gw_lists` WRITE;
+/*!40000 ALTER TABLE `dr_gw_lists` DISABLE KEYS */;
+/*!40000 ALTER TABLE `dr_gw_lists` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `dr_rules`
+--
+
+DROP TABLE IF EXISTS `dr_rules`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dr_rules` (
+  `ruleid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `groupid` varchar(255) NOT NULL,
+  `prefix` varchar(64) NOT NULL,
+  `timerec` varchar(255) NOT NULL,
+  `priority` int(11) NOT NULL DEFAULT '0',
+  `routeid` varchar(64) NOT NULL,
+  `gwlist` varchar(255) NOT NULL,
+  `description` varchar(128) NOT NULL DEFAULT '',
+  PRIMARY KEY (`ruleid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dr_rules`
+--
+
+LOCK TABLES `dr_rules` WRITE;
+/*!40000 ALTER TABLE `dr_rules` DISABLE KEYS */;
+/*!40000 ALTER TABLE `dr_rules` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `globalblacklist`
 --
 
@@ -646,7 +727,7 @@ CREATE TABLE `grp` (
   `username` varchar(64) NOT NULL DEFAULT '',
   `domain` varchar(64) NOT NULL DEFAULT '',
   `grp` varchar(64) NOT NULL DEFAULT '',
-  `last_modified` datetime NOT NULL DEFAULT '1900-01-01 00:00:01',
+  `last_modified` datetime NOT NULL DEFAULT '2000-01-01 00:00:01',
   PRIMARY KEY (`id`),
   UNIQUE KEY `account_group_idx` (`username`,`domain`,`grp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -790,6 +871,7 @@ CREATE TABLE `lcr_rule` (
   `prefix` varchar(16) DEFAULT NULL,
   `from_uri` varchar(64) DEFAULT NULL,
   `request_uri` varchar(64) DEFAULT NULL,
+  `mt_tvalue` varchar(128) DEFAULT NULL,
   `stopper` int(10) unsigned NOT NULL DEFAULT '0',
   `enabled` int(10) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
@@ -847,14 +929,14 @@ CREATE TABLE `location` (
   `ruid` varchar(64) NOT NULL DEFAULT '',
   `username` varchar(64) NOT NULL DEFAULT '',
   `domain` varchar(64) DEFAULT NULL,
-  `contact` varchar(255) NOT NULL DEFAULT '',
+  `contact` varchar(512) NOT NULL DEFAULT '',
   `received` varchar(128) DEFAULT NULL,
   `path` varchar(512) DEFAULT NULL,
   `expires` datetime NOT NULL DEFAULT '2030-05-28 21:32:15',
   `q` float(10,2) NOT NULL DEFAULT '1.00',
   `callid` varchar(255) NOT NULL DEFAULT 'Default-Call-ID',
   `cseq` int(11) NOT NULL DEFAULT '1',
-  `last_modified` datetime NOT NULL DEFAULT '1900-01-01 00:00:01',
+  `last_modified` datetime NOT NULL DEFAULT '2000-01-01 00:00:01',
   `flags` int(11) NOT NULL DEFAULT '0',
   `cflags` int(11) NOT NULL DEFAULT '0',
   `user_agent` varchar(255) NOT NULL DEFAULT '',
@@ -869,8 +951,9 @@ CREATE TABLE `location` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `ruid_idx` (`ruid`),
   KEY `account_contact_idx` (`username`,`domain`,`contact`),
-  KEY `expires_idx` (`expires`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  KEY `expires_idx` (`expires`),
+  KEY `connection_idx` (`server_id`,`connection_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -896,8 +979,8 @@ CREATE TABLE `location_attrs` (
   `domain` varchar(64) DEFAULT NULL,
   `aname` varchar(64) NOT NULL DEFAULT '',
   `atype` int(11) NOT NULL DEFAULT '0',
-  `avalue` varchar(255) NOT NULL DEFAULT '',
-  `last_modified` datetime NOT NULL DEFAULT '1900-01-01 00:00:01',
+  `avalue` varchar(512) NOT NULL DEFAULT '',
+  `last_modified` datetime NOT NULL DEFAULT '2000-01-01 00:00:01',
   PRIMARY KEY (`id`),
   KEY `account_record_idx` (`username`,`domain`,`ruid`),
   KEY `last_modified_idx` (`last_modified`)
@@ -923,8 +1006,8 @@ DROP TABLE IF EXISTS `missed_calls`;
 CREATE TABLE `missed_calls` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `method` varchar(16) NOT NULL DEFAULT '',
-  `from_tag` varchar(64) NOT NULL DEFAULT '',
-  `to_tag` varchar(64) NOT NULL DEFAULT '',
+  `from_tag` varchar(128) NOT NULL DEFAULT '',
+  `to_tag` varchar(128) NOT NULL DEFAULT '',
   `callid` varchar(255) NOT NULL DEFAULT '',
   `sip_code` varchar(3) NOT NULL DEFAULT '',
   `sip_reason` varchar(128) NOT NULL DEFAULT '',
@@ -1061,9 +1144,9 @@ DROP TABLE IF EXISTS `pdt`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `pdt` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `sdomain` varchar(128) NOT NULL,
+  `sdomain` varchar(255) NOT NULL,
   `prefix` varchar(32) NOT NULL,
-  `domain` varchar(128) NOT NULL DEFAULT '',
+  `domain` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `sdomain_prefix_idx` (`sdomain`,`prefix`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -1115,17 +1198,19 @@ CREATE TABLE `presentity` (
   `username` varchar(64) NOT NULL,
   `domain` varchar(64) NOT NULL,
   `event` varchar(64) NOT NULL,
-  `etag` varchar(64) NOT NULL,
+  `etag` varchar(128) NOT NULL,
   `expires` int(11) NOT NULL,
   `received_time` int(11) NOT NULL,
   `body` blob NOT NULL,
-  `sender` varchar(128) NOT NULL,
+  `sender` varchar(255) NOT NULL,
   `priority` int(11) NOT NULL DEFAULT '0',
+  `ruid` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `presentity_idx` (`username`,`domain`,`event`,`etag`),
+  UNIQUE KEY `ruid_idx` (`ruid`),
   KEY `presentity_expires` (`expires`),
   KEY `account_idx` (`username`,`domain`,`event`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1146,22 +1231,22 @@ DROP TABLE IF EXISTS `pua`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `pua` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `pres_uri` varchar(128) NOT NULL,
+  `pres_uri` varchar(255) NOT NULL,
   `pres_id` varchar(255) NOT NULL,
   `event` int(11) NOT NULL,
   `expires` int(11) NOT NULL,
   `desired_expires` int(11) NOT NULL,
   `flag` int(11) NOT NULL,
-  `etag` varchar(64) NOT NULL,
+  `etag` varchar(128) NOT NULL,
   `tuple_id` varchar(64) DEFAULT NULL,
-  `watcher_uri` varchar(128) NOT NULL,
+  `watcher_uri` varchar(255) NOT NULL,
   `call_id` varchar(255) NOT NULL,
-  `to_tag` varchar(64) NOT NULL,
-  `from_tag` varchar(64) NOT NULL,
+  `to_tag` varchar(128) NOT NULL,
+  `from_tag` varchar(128) NOT NULL,
   `cseq` int(11) NOT NULL,
   `record_route` text,
-  `contact` varchar(128) NOT NULL,
-  `remote_contact` varchar(128) NOT NULL,
+  `contact` varchar(255) NOT NULL,
+  `remote_contact` varchar(255) NOT NULL,
   `version` int(11) NOT NULL,
   `extra_headers` text NOT NULL,
   PRIMARY KEY (`id`),
@@ -1191,8 +1276,8 @@ DROP TABLE IF EXISTS `purplemap`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `purplemap` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `sip_user` varchar(128) NOT NULL,
-  `ext_user` varchar(128) NOT NULL,
+  `sip_user` varchar(255) NOT NULL,
+  `ext_user` varchar(255) NOT NULL,
   `ext_prot` varchar(16) NOT NULL,
   `ext_pass` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -1243,7 +1328,7 @@ DROP TABLE IF EXISTS `rls_presentity`;
 CREATE TABLE `rls_presentity` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `rlsubs_did` varchar(255) NOT NULL,
-  `resource_uri` varchar(128) NOT NULL,
+  `resource_uri` varchar(255) NOT NULL,
   `content_type` varchar(255) NOT NULL,
   `presence_state` blob NOT NULL,
   `expires` int(11) NOT NULL,
@@ -1276,26 +1361,26 @@ DROP TABLE IF EXISTS `rls_watchers`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `rls_watchers` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `presentity_uri` varchar(128) NOT NULL,
+  `presentity_uri` varchar(255) NOT NULL,
   `to_user` varchar(64) NOT NULL,
   `to_domain` varchar(64) NOT NULL,
   `watcher_username` varchar(64) NOT NULL,
   `watcher_domain` varchar(64) NOT NULL,
   `event` varchar(64) NOT NULL DEFAULT 'presence',
   `event_id` varchar(64) DEFAULT NULL,
-  `to_tag` varchar(64) NOT NULL,
-  `from_tag` varchar(64) NOT NULL,
+  `to_tag` varchar(128) NOT NULL,
+  `from_tag` varchar(128) NOT NULL,
   `callid` varchar(255) NOT NULL,
   `local_cseq` int(11) NOT NULL,
   `remote_cseq` int(11) NOT NULL,
-  `contact` varchar(128) NOT NULL,
+  `contact` varchar(255) NOT NULL,
   `record_route` text,
   `expires` int(11) NOT NULL,
   `status` int(11) NOT NULL DEFAULT '2',
   `reason` varchar(64) NOT NULL,
   `version` int(11) NOT NULL DEFAULT '0',
   `socket_info` varchar(64) NOT NULL,
-  `local_contact` varchar(128) NOT NULL,
+  `local_contact` varchar(255) NOT NULL,
   `from_user` varchar(64) NOT NULL,
   `from_domain` varchar(64) NOT NULL,
   `updated` int(11) NOT NULL,
@@ -1314,6 +1399,34 @@ CREATE TABLE `rls_watchers` (
 LOCK TABLES `rls_watchers` WRITE;
 /*!40000 ALTER TABLE `rls_watchers` DISABLE KEYS */;
 /*!40000 ALTER TABLE `rls_watchers` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `rtpengine`
+--
+
+DROP TABLE IF EXISTS `rtpengine`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `rtpengine` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `setid` int(10) unsigned NOT NULL DEFAULT '0',
+  `url` varchar(64) NOT NULL,
+  `weight` int(10) unsigned NOT NULL DEFAULT '1',
+  `disabled` int(1) NOT NULL DEFAULT '0',
+  `stamp` datetime NOT NULL DEFAULT '1900-01-01 00:00:01',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `rtpengine_nodes` (`setid`,`url`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `rtpengine`
+--
+
+LOCK TABLES `rtpengine` WRITE;
+/*!40000 ALTER TABLE `rtpengine` DISABLE KEYS */;
+/*!40000 ALTER TABLE `rtpengine` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1359,14 +1472,15 @@ CREATE TABLE `sca_subscriptions` (
   `state` int(11) NOT NULL DEFAULT '0',
   `app_idx` int(11) NOT NULL DEFAULT '0',
   `call_id` varchar(255) NOT NULL,
-  `from_tag` varchar(64) NOT NULL,
-  `to_tag` varchar(64) NOT NULL,
+  `from_tag` varchar(128) NOT NULL,
+  `to_tag` varchar(128) NOT NULL,
   `record_route` text,
   `notify_cseq` int(11) NOT NULL,
   `subscribe_cseq` int(11) NOT NULL,
+  `server_id` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `sca_subscriptions_idx` (`subscriber`,`call_id`,`from_tag`,`to_tag`),
-  KEY `sca_expires_idx` (`expires`),
+  KEY `sca_expires_idx` (`server_id`,`expires`),
   KEY `sca_subscribers_idx` (`subscriber`,`event`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1381,6 +1495,32 @@ LOCK TABLES `sca_subscriptions` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `secfilter`
+--
+
+DROP TABLE IF EXISTS `secfilter`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `secfilter` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `action` smallint(6) NOT NULL DEFAULT '0',
+  `type` smallint(6) NOT NULL DEFAULT '0',
+  `data` varchar(64) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `secfilter_idx` (`action`,`type`,`data`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `secfilter`
+--
+
+LOCK TABLES `secfilter` WRITE;
+/*!40000 ALTER TABLE `secfilter` DISABLE KEYS */;
+/*!40000 ALTER TABLE `secfilter` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `silo`
 --
 
@@ -1389,8 +1529,8 @@ DROP TABLE IF EXISTS `silo`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `silo` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `src_addr` varchar(128) NOT NULL DEFAULT '',
-  `dst_addr` varchar(128) NOT NULL DEFAULT '',
+  `src_addr` varchar(255) NOT NULL DEFAULT '',
+  `dst_addr` varchar(255) NOT NULL DEFAULT '',
   `username` varchar(64) NOT NULL DEFAULT '',
   `domain` varchar(64) NOT NULL DEFAULT '',
   `inc_time` int(11) NOT NULL DEFAULT '0',
@@ -1424,17 +1564,17 @@ DROP TABLE IF EXISTS `sip_trace`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `sip_trace` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `time_stamp` datetime NOT NULL DEFAULT '1900-01-01 00:00:01',
+  `time_stamp` datetime NOT NULL DEFAULT '2000-01-01 00:00:01',
   `time_us` int(10) unsigned NOT NULL DEFAULT '0',
   `callid` varchar(255) NOT NULL DEFAULT '',
-  `traced_user` varchar(128) NOT NULL DEFAULT '',
+  `traced_user` varchar(255) NOT NULL DEFAULT '',
   `msg` mediumtext NOT NULL,
   `method` varchar(50) NOT NULL DEFAULT '',
-  `status` varchar(128) NOT NULL DEFAULT '',
+  `status` varchar(255) NOT NULL DEFAULT '',
   `fromip` varchar(50) NOT NULL DEFAULT '',
   `toip` varchar(50) NOT NULL DEFAULT '',
-  `fromtag` varchar(64) NOT NULL DEFAULT '',
-  `totag` varchar(64) NOT NULL DEFAULT '',
+  `fromtag` varchar(128) NOT NULL DEFAULT '',
+  `totag` varchar(128) NOT NULL DEFAULT '',
   `direction` varchar(4) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `traced_user_idx` (`traced_user`),
@@ -1466,7 +1606,7 @@ CREATE TABLE `speed_dial` (
   `domain` varchar(64) NOT NULL DEFAULT '',
   `sd_username` varchar(64) NOT NULL DEFAULT '',
   `sd_domain` varchar(64) NOT NULL DEFAULT '',
-  `new_uri` varchar(128) NOT NULL DEFAULT '',
+  `new_uri` varchar(255) NOT NULL DEFAULT '',
   `fname` varchar(64) NOT NULL DEFAULT '',
   `lname` varchar(64) NOT NULL DEFAULT '',
   `description` varchar(64) NOT NULL DEFAULT '',
@@ -1495,15 +1635,13 @@ CREATE TABLE `subscriber` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(64) NOT NULL DEFAULT '',
   `domain` varchar(64) NOT NULL DEFAULT '',
-  `password` varchar(25) NOT NULL DEFAULT '',
-  `email_address` varchar(64) NOT NULL DEFAULT '',
-  `ha1` varchar(64) NOT NULL DEFAULT '',
-  `ha1b` varchar(64) NOT NULL DEFAULT '',
-  `rpid` varchar(64) DEFAULT NULL,
+  `password` varchar(64) NOT NULL DEFAULT '',
+  `ha1` varchar(128) NOT NULL DEFAULT '',
+  `ha1b` varchar(128) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `account_idx` (`username`,`domain`),
   KEY `username_idx` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1512,7 +1650,107 @@ CREATE TABLE `subscriber` (
 
 LOCK TABLES `subscriber` WRITE;
 /*!40000 ALTER TABLE `subscriber` DISABLE KEYS */;
+INSERT INTO `subscriber` VALUES (1,'79293205','kamailio.twobarrels.com','KPK6eypWHKFd','b06bc5da734c7aca3095d32a16aed58d','2e874d39aa136153f5ee62877f57500a'),(2,'133','kamailio.twobarrels.com','3k6NEvyRB','1b0a64db9ab91618cdeec56518fc3399','7f5e2317598be9c85f732bcc8c607eca'),(3,'700','kamailio.twobarrel.com','3k6NEvyRB','d35a34e12cdc176cc014e6b51f4d9c51','e2a8f9becc1b4d2942a2faac19c4b2f2'),(4,'421','kamailio.twobarrel.com','3k6NEvyRB','b2b6b4e900e5690895db80e35eacfdf3','fda8a23328f5151649a72bbbda3abb55'),(5,'420','kamailio.twobarrel.com','3k6NEvyRB','71c5e6f1bb4bb6d71a01ab09f40b9c62','d0c2e4010329a0d08377ec5c8c320f3f'),(6,'1004','kamailio.twobarrels.com','3k6NEvyRB','b41f5c0c0a4eecfa3022c517f38c2fbf','efb8ab8451ad730a02dbce21b36b1d50');
 /*!40000 ALTER TABLE `subscriber` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `topos_d`
+--
+
+DROP TABLE IF EXISTS `topos_d`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `topos_d` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `rectime` datetime NOT NULL,
+  `s_method` varchar(64) NOT NULL DEFAULT '',
+  `s_cseq` varchar(64) NOT NULL DEFAULT '',
+  `a_callid` varchar(255) NOT NULL DEFAULT '',
+  `a_uuid` varchar(255) NOT NULL DEFAULT '',
+  `b_uuid` varchar(255) NOT NULL DEFAULT '',
+  `a_contact` varchar(512) NOT NULL DEFAULT '',
+  `b_contact` varchar(512) NOT NULL DEFAULT '',
+  `as_contact` varchar(512) NOT NULL DEFAULT '',
+  `bs_contact` varchar(512) NOT NULL DEFAULT '',
+  `a_tag` varchar(255) NOT NULL DEFAULT '',
+  `b_tag` varchar(255) NOT NULL DEFAULT '',
+  `a_rr` mediumtext,
+  `b_rr` mediumtext,
+  `s_rr` mediumtext,
+  `iflags` int(10) unsigned NOT NULL DEFAULT '0',
+  `a_uri` varchar(255) NOT NULL DEFAULT '',
+  `b_uri` varchar(255) NOT NULL DEFAULT '',
+  `r_uri` varchar(255) NOT NULL DEFAULT '',
+  `a_srcaddr` varchar(128) NOT NULL DEFAULT '',
+  `b_srcaddr` varchar(128) NOT NULL DEFAULT '',
+  `a_socket` varchar(128) NOT NULL DEFAULT '',
+  `b_socket` varchar(128) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `rectime_idx` (`rectime`),
+  KEY `a_callid_idx` (`a_callid`),
+  KEY `a_uuid_idx` (`a_uuid`),
+  KEY `b_uuid_idx` (`b_uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `topos_d`
+--
+
+LOCK TABLES `topos_d` WRITE;
+/*!40000 ALTER TABLE `topos_d` DISABLE KEYS */;
+/*!40000 ALTER TABLE `topos_d` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `topos_t`
+--
+
+DROP TABLE IF EXISTS `topos_t`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `topos_t` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `rectime` datetime NOT NULL,
+  `s_method` varchar(64) NOT NULL DEFAULT '',
+  `s_cseq` varchar(64) NOT NULL DEFAULT '',
+  `a_callid` varchar(255) NOT NULL DEFAULT '',
+  `a_uuid` varchar(255) NOT NULL DEFAULT '',
+  `b_uuid` varchar(255) NOT NULL DEFAULT '',
+  `direction` int(11) NOT NULL DEFAULT '0',
+  `x_via` mediumtext,
+  `x_vbranch` varchar(255) NOT NULL DEFAULT '',
+  `x_rr` mediumtext,
+  `y_rr` mediumtext,
+  `s_rr` mediumtext,
+  `x_uri` varchar(255) NOT NULL DEFAULT '',
+  `a_contact` varchar(512) NOT NULL DEFAULT '',
+  `b_contact` varchar(512) NOT NULL DEFAULT '',
+  `as_contact` varchar(512) NOT NULL DEFAULT '',
+  `bs_contact` varchar(512) NOT NULL DEFAULT '',
+  `x_tag` varchar(255) NOT NULL DEFAULT '',
+  `a_tag` varchar(255) NOT NULL DEFAULT '',
+  `b_tag` varchar(255) NOT NULL DEFAULT '',
+  `a_srcaddr` varchar(255) NOT NULL DEFAULT '',
+  `b_srcaddr` varchar(255) NOT NULL DEFAULT '',
+  `a_socket` varchar(128) NOT NULL DEFAULT '',
+  `b_socket` varchar(128) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `rectime_idx` (`rectime`),
+  KEY `a_callid_idx` (`a_callid`),
+  KEY `x_vbranch_idx` (`x_vbranch`),
+  KEY `a_uuid_idx` (`a_uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `topos_t`
+--
+
+LOCK TABLES `topos_t` WRITE;
+/*!40000 ALTER TABLE `topos_t` DISABLE KEYS */;
+/*!40000 ALTER TABLE `topos_t` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1527,7 +1765,9 @@ CREATE TABLE `trusted` (
   `src_ip` varchar(50) NOT NULL,
   `proto` varchar(4) NOT NULL,
   `from_pattern` varchar(64) DEFAULT NULL,
+  `ruri_pattern` varchar(64) DEFAULT NULL,
   `tag` varchar(64) DEFAULT NULL,
+  `priority` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `peer_idx` (`src_ip`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -1553,17 +1793,21 @@ CREATE TABLE `uacreg` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `l_uuid` varchar(64) NOT NULL DEFAULT '',
   `l_username` varchar(64) NOT NULL DEFAULT '',
-  `l_domain` varchar(128) NOT NULL DEFAULT '',
+  `l_domain` varchar(64) NOT NULL DEFAULT '',
   `r_username` varchar(64) NOT NULL DEFAULT '',
-  `r_domain` varchar(128) NOT NULL DEFAULT '',
+  `r_domain` varchar(64) NOT NULL DEFAULT '',
   `realm` varchar(64) NOT NULL DEFAULT '',
   `auth_username` varchar(64) NOT NULL DEFAULT '',
   `auth_password` varchar(64) NOT NULL DEFAULT '',
-  `auth_proxy` varchar(64) NOT NULL DEFAULT '',
+  `auth_ha1` varchar(128) NOT NULL DEFAULT '',
+  `auth_proxy` varchar(255) NOT NULL DEFAULT '',
   `expires` int(11) NOT NULL DEFAULT '0',
+  `flags` int(11) NOT NULL DEFAULT '0',
+  `reg_delay` int(11) NOT NULL DEFAULT '0',
+  `socket` varchar(128) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `l_uuid_idx` (`l_uuid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=7127 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1572,6 +1816,7 @@ CREATE TABLE `uacreg` (
 
 LOCK TABLES `uacreg` WRITE;
 /*!40000 ALTER TABLE `uacreg` DISABLE KEYS */;
+INSERT INTO `uacreg` VALUES (7036,'133','133','172.31.34.157','133','172.31.34.157','asterisk','133','3k6NEvyRB','','sip:172.31.34.157:5060',90,0,0,''),(7125,'700','700','172.31.34.157','700','172.31.34.157','asterisk','700','3k6NEvyRB','','sip:172.31.34.157:5060',90,0,0,'');
 /*!40000 ALTER TABLE `uacreg` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1791,7 +2036,7 @@ CREATE TABLE `uri` (
   `username` varchar(64) NOT NULL DEFAULT '',
   `domain` varchar(64) NOT NULL DEFAULT '',
   `uri_user` varchar(64) NOT NULL DEFAULT '',
-  `last_modified` datetime NOT NULL DEFAULT '1900-01-01 00:00:01',
+  `last_modified` datetime NOT NULL DEFAULT '2000-01-01 00:00:01',
   PRIMARY KEY (`id`),
   UNIQUE KEY `account_idx` (`username`,`domain`,`uri_user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -1843,12 +2088,12 @@ DROP TABLE IF EXISTS `usr_preferences`;
 CREATE TABLE `usr_preferences` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `uuid` varchar(64) NOT NULL DEFAULT '',
-  `username` varchar(128) NOT NULL DEFAULT '0',
+  `username` varchar(255) NOT NULL DEFAULT '0',
   `domain` varchar(64) NOT NULL DEFAULT '',
   `attribute` varchar(32) NOT NULL DEFAULT '',
   `type` int(11) NOT NULL DEFAULT '0',
   `value` varchar(128) NOT NULL DEFAULT '',
-  `last_modified` datetime NOT NULL DEFAULT '1900-01-01 00:00:01',
+  `last_modified` datetime NOT NULL DEFAULT '2000-01-01 00:00:01',
   PRIMARY KEY (`id`),
   KEY `ua_idx` (`uuid`,`attribute`),
   KEY `uda_idx` (`username`,`domain`,`attribute`)
@@ -1872,10 +2117,12 @@ DROP TABLE IF EXISTS `version`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `version` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `table_name` varchar(32) NOT NULL,
   `table_version` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
   UNIQUE KEY `table_name_idx` (`table_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1884,7 +2131,7 @@ CREATE TABLE `version` (
 
 LOCK TABLES `version` WRITE;
 /*!40000 ALTER TABLE `version` DISABLE KEYS */;
-INSERT INTO `version` VALUES ('acc',5),('acc_cdrs',2),('active_watchers',11),('address',6),('aliases',8),('carrierfailureroute',2),('carrierroute',3),('carrier_name',1),('cpl',1),('dbaliases',1),('dialog',7),('dialog_vars',1),('dialplan',2),('dispatcher',4),('domain',2),('domainpolicy',2),('domain_attrs',1),('domain_name',1),('globalblacklist',1),('grp',2),('htable',2),('imc_members',1),('imc_rooms',1),('lcr_gw',3),('lcr_rule',2),('lcr_rule_target',1),('location',8),('location_attrs',1),('missed_calls',4),('mohqcalls',1),('mohqueues',1),('mtree',1),('mtrees',2),('pdt',1),('pl_pipes',1),('presentity',4),('pua',7),('purplemap',1),('re_grp',1),('rls_presentity',1),('rls_watchers',3),('rtpproxy',1),('sca_subscriptions',1),('silo',8),('sip_trace',4),('speed_dial',2),('subscriber',6),('trusted',5),('uacreg',1),('uid_credentials',7),('uid_domain',2),('uid_domain_attrs',1),('uid_global_attrs',1),('uid_uri',3),('uid_uri_attrs',2),('uid_user_attrs',3),('uri',1),('userblacklist',1),('usr_preferences',2),('watchers',3),('xcap',4);
+INSERT INTO `version` VALUES (1,'version',1),(2,'acc',5),(3,'acc_cdrs',2),(4,'missed_calls',4),(5,'lcr_gw',3),(6,'lcr_rule_target',1),(7,'lcr_rule',3),(8,'domain',2),(9,'domain_attrs',1),(10,'grp',2),(11,'re_grp',1),(12,'trusted',6),(13,'address',6),(14,'aliases',8),(15,'location',9),(16,'location_attrs',1),(17,'silo',8),(18,'dbaliases',1),(19,'uri',1),(20,'speed_dial',2),(21,'usr_preferences',2),(22,'subscriber',7),(23,'pdt',1),(24,'dialog',7),(25,'dialog_vars',1),(26,'dispatcher',4),(27,'dialplan',2),(28,'topos_d',1),(29,'topos_t',1),(30,'presentity',5),(31,'active_watchers',12),(32,'watchers',3),(33,'xcap',4),(34,'pua',7),(35,'rls_presentity',1),(36,'rls_watchers',3),(37,'imc_rooms',1),(38,'imc_members',1),(39,'cpl',1),(40,'sip_trace',4),(41,'domainpolicy',2),(42,'carrierroute',3),(43,'carrierfailureroute',2),(44,'carrier_name',1),(45,'domain_name',1),(46,'dr_gateways',3),(47,'dr_rules',3),(48,'dr_gw_lists',1),(49,'dr_groups',2),(50,'userblacklist',1),(51,'globalblacklist',1),(52,'htable',2),(53,'purplemap',1),(54,'uacreg',4),(55,'pl_pipes',1),(56,'mtree',1),(57,'mtrees',2),(58,'sca_subscriptions',2),(59,'mohqcalls',1),(60,'mohqueues',1),(61,'rtpproxy',1),(62,'rtpengine',1),(63,'secfilter',1),(64,'uid_credentials',7),(65,'uid_user_attrs',3),(66,'uid_domain',2),(67,'uid_domain_attrs',1),(68,'uid_global_attrs',1),(69,'uid_uri',3),(70,'uid_uri_attrs',2);
 /*!40000 ALTER TABLE `version` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1897,7 +2144,7 @@ DROP TABLE IF EXISTS `watchers`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `watchers` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `presentity_uri` varchar(128) NOT NULL,
+  `presentity_uri` varchar(255) NOT NULL,
   `watcher_username` varchar(64) NOT NULL,
   `watcher_domain` varchar(64) NOT NULL,
   `event` varchar(64) NOT NULL DEFAULT 'presence',
@@ -1906,7 +2153,7 @@ CREATE TABLE `watchers` (
   `inserted_time` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `watcher_idx` (`presentity_uri`,`watcher_username`,`watcher_domain`,`event`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1915,6 +2162,7 @@ CREATE TABLE `watchers` (
 
 LOCK TABLES `watchers` WRITE;
 /*!40000 ALTER TABLE `watchers` DISABLE KEYS */;
+INSERT INTO `watchers` VALUES (1,'sip:rls@sip.linphone.org','700','kamailio.twobarrels.com','presence',1,'',1619110977),(2,'sip:133@kamailio.twobarrels.com','133','kamailio.twobarrels.com','presence',1,'',1620164640),(3,'sip:421@kamailio.twobarrels.com','133','kamailio.twobarrels.com','presence',1,'',1620404010),(4,'sip:700@kamailio.twobarrels.com','133','kamailio.twobarrels.com','presence',1,'',1620861362),(5,'sip:kamailio.twobarrels.com','133','kamailio.twobarrels.com','presence',1,'',1623349492);
 /*!40000 ALTER TABLE `watchers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1931,7 +2179,7 @@ CREATE TABLE `xcap` (
   `domain` varchar(64) NOT NULL,
   `doc` mediumblob NOT NULL,
   `doc_type` int(11) NOT NULL,
-  `etag` varchar(64) NOT NULL,
+  `etag` varchar(128) NOT NULL,
   `source` int(11) NOT NULL,
   `doc_uri` varchar(255) NOT NULL,
   `port` int(11) NOT NULL,
@@ -1961,17 +2209,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-12-03  2:56:50
-© 2022 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Docs
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
-Loading complete
+-- Dump completed on 2022-03-22 16:09:32
