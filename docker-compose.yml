@@ -15,8 +15,8 @@ services:
      deploy:
        mode: replicated
        replicas: 6
-     ports:
-       - "5061:5061/udp"
+     #ports:
+      # - "5061:5061/udp"
    kamailio_dispatcher:
      depends_on:
        - asterisk
