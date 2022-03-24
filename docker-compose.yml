@@ -15,9 +15,12 @@ services:
      deploy:
        mode: replicated
        replicas: 6
+     ports:
+       - "5061:5061/udp"
    kamailio_dispatcher:
      depends_on:
        - asterisk
+       - kamailio_pg
      build:
       context: ./kamailio
       dockerfile: kamailio.dockerfile
@@ -31,7 +34,7 @@ services:
       context: ./postgresql
       dockerfile: postgres.dockerfile
      ports:
-      - "5432:5432/tcp"
+      - "5435:5432/tcp"
      environment:
        - POSTGRES_PASSWORD=notkamailio
        - POSTGRES_DB=kamailio

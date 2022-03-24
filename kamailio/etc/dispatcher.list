@@ -6,9 +6,9 @@
 # setid(int) destination(sip uri) flags(int,opt) priority(int,opt) attributes(str,opt)
 
 # proxies
-1 sip:kamailio-asterisk-docker-compose_asterisk_1:5060; 0 0
-1 sip:kamailio-asterisk-docker-compose_asterisk_2:5060; 0 0
-1 sip:kamailio-asterisk-docker-compose_asterisk_3:5060; 0 0
+1 sip:kamailio-asterisk-docker-compose_asterisk_1:5061; 0 0
+1 sip:kamailio-asterisk-docker-compose_asterisk_2:5061; 0 0
+1 sip:kamailio-asterisk-docker-compose_asterisk_3:5061; 0 0
 
 # gateways
 #1 sip:127.0.0.1:7070 0 0 duid=xyz;maxload=20

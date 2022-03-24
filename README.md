@@ -32,4 +32,4 @@ This is meant to be an easy way to spin up docker compose with kamailio and aste
 - docker exec -it kamailio-asterisk-docker-compose_kamailio_database_1 /bin/bash
 
 # Mariadb Usage
-I have commented out all mariadb as I prefer using postgres but you can use it by commenting out postgres and uncommenting mariadb stuff
+I have commented out all mariadb as I prefer using postgres but you can use it by commenting out postgres and uncommenting mariadb stuff.
