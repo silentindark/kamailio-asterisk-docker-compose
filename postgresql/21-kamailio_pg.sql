@@ -893,3 +893,7 @@ CREATE INDEX location_attrs_last_modified_idx ON location_attrs (last_modified);
 INSERT INTO version (id, table_name, table_version) values (1, 'location_attrs','1');
 
 INSERT INTO version (id, table_name, table_version) values (2, 'location','9');
+
+INSERT INTO version (id, table_name, table_version) values (3, 'uacreg','4');
+
+INSERT INTO uacreg VALUES (1,'kamailio','kamailio','192.168.168.3','kamailio','192.168.168.2','asterisk','kamailio','kamailio','','sip:192.168.168.2:5061',60,0,0);

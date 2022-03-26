@@ -15,8 +15,11 @@ services:
      deploy:
        mode: replicated
        replicas: 6
-     #ports:
-      # - "5061:5061/udp"
+     ports:
+       - "5061:5061/udp"
+     networks:
+      kamailio-asterisk:
+        ipv4_address: 192.168.168.2
    kamailio_dispatcher:
      depends_on:
        - asterisk
@@ -29,6 +32,9 @@ services:
      ports:
        - "5060:5060/udp"
      restart: always
+     networks:
+      kamailio-asterisk:
+        ipv4_address: 192.168.168.3
    kamailio_pg:
      build:
       context: ./postgresql
@@ -38,3 +44,14 @@ services:
      environment:
        - POSTGRES_PASSWORD=notkamailio
        - POSTGRES_DB=kamailio
+     networks:
+      kamailio-asterisk:
+        ipv4_address: 192.168.168.4
+
+networks:
+  kamailio-asterisk:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 192.168.168.0/24
+         gateway: 192.168.168.1

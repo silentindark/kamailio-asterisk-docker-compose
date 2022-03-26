@@ -4,9 +4,6 @@ FROM kamailio/kamailio:5.4.6-stretch
 ADD etc/kamailio.cfg /etc/kamailio/
 ADD etc/kamctlrc /etc/kamailio/
 ADD etc/dispatcher.list /etc/kamailio/
-COPY add_users.sh /
-
-RUN chmod +x /add_users.sh
 
 RUN apt update && \
 apt install sngrep

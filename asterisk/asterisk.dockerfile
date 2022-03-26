@@ -1,15 +1,16 @@
 FROM andrius/asterisk
 
 #Copy the config file onto the Filesystem of the Docker instance
-ADD pjsip.conf /etc/asterisk/
-ADD extensions.conf /etc/asterisk/
-ADD extconfig.conf /etc/asterisk/
-ADD res_odbc.conf /etc/asterisk/
-ADD odbcinst.ini /etc/
-ADD odbc.ini /etc/
+ADD etc/pjsip.conf /etc/asterisk/
+ADD etc/extensions.conf /etc/asterisk/
+#ADD etc/extconfig.conf /etc/asterisk/
+#ADD etc/res_odbc.conf /etc/asterisk/
+#ADD etc/sorcery.conf /etc/asterisk/
+ADD etc/odbcinst.ini /etc/
+ADD etc/odbc.ini /etc/
 
 #Install sngrep on asterisk
-RUN apk add sngrep
+RUN apk add sngrep && apk add psqlodbc
 
 #Expose port 5061 (SIP) for TCP and UDP
 EXPOSE 5061/udp
