@@ -17,6 +17,7 @@ services:
        replicas: 6
      ports:
        - "5061:5061/udp"
+       - 10000-10050:10000-10050/udp
      networks:
       kamailio-asterisk:
         ipv4_address: 192.168.168.2

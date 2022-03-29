@@ -14,3 +14,4 @@ RUN apk add sngrep && apk add psqlodbc
 
 #Expose port 5061 (SIP) for TCP and UDP
 EXPOSE 5061/udp
+EXPOSE 10000-20000/udp
